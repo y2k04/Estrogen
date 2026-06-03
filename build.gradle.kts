@@ -6,6 +6,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
 import net.msrandom.minecraftcodev.core.utils.toPath
+import net.msrandom.minecraftcodev.runs.task.*
 import net.msrandom.stubs.GenerateStubApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -384,6 +385,9 @@ tasks.named("createCommonApiStub", GenerateStubApi::class) {
     excludes.add(libs.kittyconfig.get().group)
 }
 
+tasks.withType(DownloadAssets::class) { minecraftVersion = libs.versions.minecraft }
+tasks.withType(ExtractNatives::class) { minecraftVersion = libs.versions.minecraft }
+
 // Lemme just disable compiling java to fix issues
 tasks.compileJava {
     enabled = false
@@ -409,12 +413,16 @@ publishing {
         val username = try { onePassword["op://nmnrp3mc2nkriiiwwk4f7q73jm/Sappho Maven/username"] } catch (_: Exception) { null }
         val password = try { onePassword["op://nmnrp3mc2nkriiiwwk4f7q73jm/Sappho Maven/password"] } catch (_: Exception) { null }
         if (username != null && password != null) {
-            maven("https://maven.is-immensely.gay/${properties["maven_category"]}") {
-                name = "sapphoCompany"
-                credentials {
-                    this.username = username.get()
-                    this.password = password.get()
+            try {
+                maven("https://maven.is-immensely.gay/${properties["maven_category"]}") {
+                    name = "sapphoCompany"
+                    credentials {
+                        this.username = username.get()
+                        this.password = password.get()
+                    }
                 }
+            } catch (_: Exception) {
+                println("Sappho Company credentials not present.")
             }
         } else {
             println("Sappho Company credentials not present.")
